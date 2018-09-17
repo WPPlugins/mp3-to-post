@@ -3,7 +3,7 @@ Contributors: paulsheldrake
 Tags: mp3, podcasting, id3, podcast, podcaster, audio, music, spokenword
 Requires at least: 3.0
 Tested up to: 4.1
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv3
 
 Creates posts using MP3 ID3 information.
@@ -42,6 +42,10 @@ In Windows you can also right click the mp3 file and select Properties.  In the 
 Please feel free to email me.  paul.sheldrake@gmail.com
 
 == Changelog ==
+
+= 1.3.1 =
+* Added WP Cron hook and removed "break" that was causing problems in later version of WP
+* Changes made by T. Escher
 
 = 1.3.0 =
 * Added option to publish posts instead of leaving as draft
