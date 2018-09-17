@@ -39,6 +39,7 @@ add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 2);
 
 function mp3_to_post_cron($autoPublish, $emailNotify) {
   require_once('getid3/getid3.php');
+  require_once( ABSPATH . 'wp-admin/includes/media.php' );
   $mp3ToPostOptions = unserialize(get_option('mp3-to-post'));  
   $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish);
   if (isset($emailNotify)) {
