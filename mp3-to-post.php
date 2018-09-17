@@ -34,6 +34,17 @@ function mp3_admin_actions() {
 /* add the menu item */
 add_action('admin_menu', 'mp3_admin_actions');
 
+/* add the WP Cron hook */
+add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 2);
+
+function mp3_to_post_cron($autoPublish, $emailNotify) {
+  $mp3ToPostOptions = unserialize(get_option('mp3-to-post'));  
+  $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish);
+  if (isset($emailNotify)) {
+    wp_mail($emailNotify, "MP3 To Post cron run", $implode('\n', $mp3Messages));
+  }
+}  
+
 /**
  * Creates the admin page for the plugin
  *
@@ -85,12 +96,12 @@ function mp3_admin() {
     // create some posts already!
     if (isset($_POST['create-all-posts'])) {
       echo '<pre>';
-      print_r(mp3_to_post('all', $mp3ToPostOptions['folder_path']));
+      print_r(mp3_to_post('all', $mp3ToPostOptions['folder_path'], $_POST['publish-automatically']));
       echo '</pre>';
     }
     if (isset($_POST['create-first-post'])) {
       echo '<pre>';
-      print_r(mp3_to_post(1, $mp3ToPostOptions['folder_path']));
+      print_r(mp3_to_post(1, $mp3ToPostOptions['folder_path'], $_POST['publish-automatically']));
       echo '</pre>';
     }
     // end POST check
@@ -166,10 +177,13 @@ function mp3_only($filename) {
  * @param $path
  *  The base path to the folder containing the mp3s to convert to posts
  *
+ * @param $autoPublish
+ *  If TRUE, will post publish the posts created
+ *
  * @return $array
  *   Will provide an array of messages
  */
-function mp3_to_post($limit = 'all', $folderPath) {
+function mp3_to_post($limit = 'all', $folderPath, $autoPublish) {
   $messages = array();
 
   // get an array of mp3 files
@@ -273,7 +287,7 @@ function mp3_to_post($limit = 'all', $folderPath) {
         $updated_post = array();
         $updated_post['ID'] = $postID;
         $updated_post['post_content'] = $updatePost->post_content . '<p>' . $attachmentLink . '</p>';
-        if($_POST['publish-automatically']){
+        if($autoPublish){
           $updated_post['post_status'] = 'publish';
         }
         wp_update_post($updated_post);
