@@ -43,11 +43,7 @@ function mp3_to_post_cron($autoPublish, $emailNotify) {
   $mp3ToPostOptions = unserialize(get_option('mp3-to-post'));  
   $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish);
   if (isset($emailNotify)) {
-    if (is_array($mp3Messages) && (count($mp3Messages) > 0)) {
-      wp_mail($emailNotify, "MP3 To Post cron run", implode("\n", $mp3Messages));
-    } else {
-      wp_mail($emailNotify, "MP3 To Post cron run", "Nothing to process.");
-    }  
+    wp_mail($emailNotify, "MP3 To Post cron run", implode("\n", $mp3Messages));
   }
 }  
 
