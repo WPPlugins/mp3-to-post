@@ -103,7 +103,7 @@ function mp3_admin() {
     }
     if (isset($_POST['create-first-post'])) {
       echo '<pre>';
-      print_r(mp3_to_post(1, $mp3ToPostOptions['folder_path'], $_POST['publish-automatically']));
+      echo implode("\n", mp3_to_post(1, $mp3ToPostOptions['folder_path'], $_POST['publish-automatically']));
       echo '</pre>';
     }
     // end POST check
