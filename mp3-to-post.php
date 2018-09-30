@@ -40,7 +40,7 @@ add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 2);
 function mp3_to_post_cron($autoPublish, $emailNotify) {
   require_once('getid3/getid3.php');
   require_once( ABSPATH . 'wp-admin/includes/media.php' );
-  load_plugin_textdomain( 'mp3-to-post');
+  load_plugin_textdomain( 'mp3-to-post', false, basename( dirname( __FILE__ ) ) . '/languages' );
   $mp3ToPostOptions = unserialize(get_option('mp3-to-post'));  
   $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish);
   if (isset($emailNotify)) {
@@ -194,7 +194,7 @@ function mp3_to_post($limit = 'all', $folderPath, $autoPublish) {
 
   // check of there are files to process
   if(count($mp3Files) == 0){
-    array_push($messages, _e('There are no files to process', 'mp3-to-post'));
+    array_push($messages, __('There are no files to process', 'mp3-to-post'));
     return $messages;
   }
 
@@ -297,12 +297,12 @@ function mp3_to_post($limit = 'all', $folderPath, $autoPublish) {
 
 
         // 
-        array_push($messages, _e('Post created:', 'mp3-to-post') . ' ' . $title);
+        array_push($messages, __('Post created:', 'mp3-to-post') . ' ' . $title);
       } else {
-        array_push($messages, _e('Post already exists:', 'mp3-to-post') . ' ' . $title);
+        array_push($messages, __('Post already exists:', 'mp3-to-post') . ' ' . $title);
       }
     } else {
-      array_push($messages, _e('Either the title or comments are not set in the ID3 information.   Make sure they are both set for v1 and v2.', 'mp3-to-post'));
+      array_push($messages, __('Either the title or comments are not set in the ID3 information.   Make sure they are both set for v1 and v2.', 'mp3-to-post'));
     }
     $i++;
   endwhile; //
