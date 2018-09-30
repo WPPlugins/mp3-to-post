@@ -4,7 +4,7 @@
   Plugin URI: http://www.fractured-state.com/2011/09/mp3-to-post-plugin/
   Description: Creates posts using ID3 information in MP3 files.
   Author: Paul Sheldrake
-  Version: 1.3.0
+  Version: 1.3.1
   Author URI: http://www.fractured-state.com
  */
 
@@ -33,6 +33,20 @@ function mp3_admin_actions() {
 
 /* add the menu item */
 add_action('admin_menu', 'mp3_admin_actions');
+
+/* add the WP Cron hook */
+add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 2);
+
+function mp3_to_post_cron($autoPublish, $emailNotify) {
+  require_once('getid3/getid3.php');
+  require_once( ABSPATH . 'wp-admin/includes/media.php' );
+  load_plugin_textdomain( 'mp3-to-post', false, basename( dirname( __FILE__ ) ) . '/languages' );
+  $mp3ToPostOptions = unserialize(get_option('mp3-to-post'));  
+  $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish);
+  if (isset($emailNotify)) {
+    wp_mail($emailNotify, "MP3 To Post cron run", implode("\n", $mp3Messages));
+  }
+}  
 
 /**
  * Creates the admin page for the plugin
@@ -85,12 +99,12 @@ function mp3_admin() {
     // create some posts already!
     if (isset($_POST['create-all-posts'])) {
       echo '<pre>';
-      print_r(mp3_to_post('all', $mp3ToPostOptions['folder_path']));
+      echo implode("\n", mp3_to_post('all', $mp3ToPostOptions['folder_path'], $_POST['publish-automatically']));
       echo '</pre>';
     }
     if (isset($_POST['create-first-post'])) {
       echo '<pre>';
-      print_r(mp3_to_post(1, $mp3ToPostOptions['folder_path']));
+      echo implode("\n", mp3_to_post(1, $mp3ToPostOptions['folder_path'], $_POST['publish-automatically']));
       echo '</pre>';
     }
     // end POST check
@@ -166,10 +180,13 @@ function mp3_only($filename) {
  * @param $path
  *  The base path to the folder containing the mp3s to convert to posts
  *
+ * @param $autoPublish
+ *  If TRUE, will post publish the posts created
+ *
  * @return $array
  *   Will provide an array of messages
  */
-function mp3_to_post($limit = 'all', $folderPath) {
+function mp3_to_post($limit = 'all', $folderPath, $autoPublish) {
   $messages = array();
 
   // get an array of mp3 files
@@ -177,7 +194,7 @@ function mp3_to_post($limit = 'all', $folderPath) {
 
   // check of there are files to process
   if(count($mp3Files) == 0){
-    array_push($messages, _e('There are no files to process', 'mp3-to-post'));
+    array_push($messages, __('There are no files to process', 'mp3-to-post'));
     return $messages;
   }
 
@@ -273,19 +290,19 @@ function mp3_to_post($limit = 'all', $folderPath) {
         $updated_post = array();
         $updated_post['ID'] = $postID;
         $updated_post['post_content'] = $updatePost->post_content . '<p>' . $attachmentLink . '</p>';
-        if($_POST['publish-automatically']){
+        if($autoPublish){
           $updated_post['post_status'] = 'publish';
         }
         wp_update_post($updated_post);
 
 
         // 
-        array_push($messages, _e('Post created:', 'mp3-to-post') . ' ' . $title);
+        array_push($messages, __('Post created:', 'mp3-to-post') . ' ' . $title);
       } else {
-        array_push($messages, _e('Post already exists:', 'mp3-to-post') . ' ' . $title);
+        array_push($messages, __('Post already exists:', 'mp3-to-post') . ' ' . $title);
       }
     } else {
-      array_push($messages, _e('Either the title or comments are not set in the ID3 information.   Make sure they are both set for v1 and v2.', 'mp3-to-post'));
+      array_push($messages, __('Either the title or comments are not set in the ID3 information.   Make sure they are both set for v1 and v2.', 'mp3-to-post'));
     }
     $i++;
   endwhile; //
