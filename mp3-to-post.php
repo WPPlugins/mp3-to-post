@@ -34,6 +34,19 @@ function mp3_admin_actions() {
 /* add the menu item */
 add_action('admin_menu', 'mp3_admin_actions');
 
+/**
+ * Adds a select query that lets you search for titles more easily using WP Query
+ */
+function title_like_posts_where($where, &$wp_query) {
+  global $wpdb;
+  if ($post_title_like = $wp_query->get('post_title_like')) {
+    $where .= ' AND ' . $wpdb->posts . '.post_title LIKE \'' .
+      esc_sql(like_escape($post_title_like)) . '%\'';
+  }
+  return $where;
+}
+add_filter('posts_where', 'title_like_posts_where', 10, 2);
+
 /* add the WP Cron hook */
 add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 2);
 
@@ -41,6 +54,7 @@ function mp3_to_post_cron($autoPublish, $emailNotify) {
   require_once('getid3/getid3.php');
   require_once( ABSPATH . 'wp-admin/includes/media.php' );
   load_plugin_textdomain( 'mp3-to-post', false, basename( dirname( __FILE__ ) ) . '/languages' );
+  add_filter('posts_where', 'title_like_posts_where', 10, 2);
   $mp3ToPostOptions = unserialize(get_option('mp3-to-post'));  
   $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish);
   if (isset($emailNotify)) {
@@ -135,21 +149,6 @@ function mp3_admin() {
 <?php
 }
 // end mp3_admin
-
-
-
-/**
- * Adds a select query that lets you search for titles more easily using WP Query
- */
-function title_like_posts_where($where, &$wp_query) {
-  global $wpdb;
-  if ($post_title_like = $wp_query->get('post_title_like')) {
-    $where .= ' AND ' . $wpdb->posts . '.post_title LIKE \'' .
-      esc_sql(like_escape($post_title_like)) . '%\'';
-  }
-  return $where;
-}
-add_filter('posts_where', 'title_like_posts_where', 10, 2);
 
 /**
  * Takes a string and only returns it if it has '.mp3' in it.
