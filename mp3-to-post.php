@@ -48,7 +48,7 @@ function title_like_posts_where($where, &$wp_query) {
 add_filter('posts_where', 'title_like_posts_where', 10, 2);
 
 /* add the WP Cron hook */
-add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 2);
+add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 3);
 
 function mp3_to_post_cron($autoPublish, $emailNotify, $allowDuplicates) {
   require_once('getid3/getid3.php');
