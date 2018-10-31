@@ -50,13 +50,13 @@ add_filter('posts_where', 'title_like_posts_where', 10, 2);
 /* add the WP Cron hook */
 add_action('mp3_to_post_cron_hook', 'mp3_to_post_cron', 10, 2);
 
-function mp3_to_post_cron($autoPublish, $emailNotify) {
+function mp3_to_post_cron($autoPublish, $emailNotify, $allowDuplicates) {
   require_once('getid3/getid3.php');
   require_once( ABSPATH . 'wp-admin/includes/media.php' );
   load_plugin_textdomain( 'mp3-to-post', false, basename( dirname( __FILE__ ) ) . '/languages' );
   add_filter('posts_where', 'title_like_posts_where', 10, 2);
   $mp3ToPostOptions = unserialize(get_option('mp3-to-post'));  
-  $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish);
+  $mp3Messages = mp3_to_post('all', $mp3ToPostOptions['folder_path'], $autoPublish, $allowDuplicates);
   if (isset($emailNotify)) {
     wp_mail($emailNotify, "MP3 To Post cron run", implode("\n", $mp3Messages));
   }
@@ -182,10 +182,13 @@ function mp3_only($filename) {
  * @param $autoPublish
  *  If TRUE, will post publish the posts created
  *
+ * @param $allowDuplicates
+ *  If TRUE, won't check if a post has a duplicate title before posting
+ *
  * @return $array
  *   Will provide an array of messages
  */
-function mp3_to_post($limit = 'all', $folderPath, $autoPublish) {
+function mp3_to_post($limit = 'all', $folderPath, $autoPublish, $allowDuplicates = false) {
   $messages = array();
 
   // get an array of mp3 files
@@ -233,7 +236,7 @@ function mp3_to_post($limit = 'all', $folderPath, $autoPublish) {
       $titleSearchResult = new WP_Query($searchArgs);
 
       // If there are no posts with the title of the mp3 then make the post
-      if ($titleSearchResult->post_count == 0) {
+      if ($allowDuplicates || ($titleSearchResult->post_count == 0)) {
         // create basic post with info from ID3 details
         $my_post = array(
           'post_title' => $title,
